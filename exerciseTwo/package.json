@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/main.ts",
-    "migration": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./data-source.ts"
+    "migrate": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./data-source.ts"
   },
   "keywords": [],
   "author": "",
