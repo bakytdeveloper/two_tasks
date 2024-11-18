@@ -1,0 +1,9 @@
+# Игнорировать папки node_modules во всех сервисах
+node_modules/
+/inventory-service/node_modules/
+/history-service/node_modules/
+
+# Игнорировать файлы .env, которые содержат конфиденциальные данные (например, пароли)
+*.env
+/inventory-service/.env
+/history-service/.env
