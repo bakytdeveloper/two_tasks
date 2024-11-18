@@ -5,18 +5,69 @@ const { Op } = require('sequelize');
 const historyServiceUrl = 'http://localhost:3003/api/history';
 
 const inventoryController = {
+    // createProduct: async (req, res) => {
+    //     try {
+    //         const { plu, name, shop_id, stock_quantity, order_quantity } = req.body;
+    //         if (!plu || !name || !shop_id || !order_quantity) {
+    //             return res.status(400).json({ message: 'Не все обязательные поля переданы' });
+    //         }
+    //
+    //         const existingProduct = await Product.findOne({
+    //             where: {
+    //                 plu,
+    //                 shop_id,
+    //             },
+    //         });
+    //
+    //         if (existingProduct) {
+    //             return res.status(400).json({
+    //                 message: `Товар с PLU ${plu} уже существует в магазине с ID ${shop_id}`,
+    //             });
+    //         }
+    //
+    //         const product = await Product.create({
+    //             plu,
+    //             name,
+    //             shop_id,
+    //             stock_quantity: stock_quantity || 0,
+    //             order_quantity: order_quantity || 0,
+    //         });
+    //
+    //         const stock = await Stock.create({
+    //             plu,
+    //             product_id: product.id,
+    //             shop_id,
+    //             stock_quantity: stock_quantity || 0,
+    //             order_quantity: order_quantity || 0,
+    //         });
+    //
+    //         const response = await axios.post(historyServiceUrl, {
+    //             action: 'Создание товара и остатков',
+    //             plu,
+    //             name,
+    //             shop_id,
+    //             stock_quantity,
+    //             created_at: new Date(),
+    //         });
+    //
+    //         return res.status(201).json({ message: 'Товар и остатки успешно созданы', product, stock });
+    //     } catch (error) {
+    //         console.error('Ошибка при создании товара:', error);
+    //         res.status(500).json({ message: 'Ошибка при создании товара', error: error.message });
+    //     }
+    // },
+
     createProduct: async (req, res) => {
         try {
             const { plu, name, shop_id, stock_quantity, order_quantity } = req.body;
+
             if (!plu || !name || !shop_id || !order_quantity) {
                 return res.status(400).json({ message: 'Не все обязательные поля переданы' });
             }
 
+            // Проверка на существование товара
             const existingProduct = await Product.findOne({
-                where: {
-                    plu,
-                    shop_id,
-                },
+                where: { plu, shop_id },
             });
 
             if (existingProduct) {
@@ -25,6 +76,7 @@ const inventoryController = {
                 });
             }
 
+            // Создание товара
             const product = await Product.create({
                 plu,
                 name,
@@ -33,7 +85,8 @@ const inventoryController = {
                 order_quantity: order_quantity || 0,
             });
 
-            const stock = await Stock.create({
+            // Создание связанного остатка
+            await Stock.create({
                 plu,
                 product_id: product.id,
                 shop_id,
@@ -41,7 +94,8 @@ const inventoryController = {
                 order_quantity: order_quantity || 0,
             });
 
-            const response = await axios.post(historyServiceUrl, {
+            // Отправка данных в сервис истории
+            await axios.post(historyServiceUrl, {
                 action: 'Создание товара и остатков',
                 plu,
                 name,
@@ -50,12 +104,17 @@ const inventoryController = {
                 created_at: new Date(),
             });
 
-            return res.status(201).json({ message: 'Товар и остатки успешно созданы', product, stock });
+            // Возвращение только данных о товаре без остатков
+            return res.status(201).json({
+                message: 'Товар успешно создан',
+                product,
+            });
         } catch (error) {
             console.error('Ошибка при создании товара:', error);
             res.status(500).json({ message: 'Ошибка при создании товара', error: error.message });
         }
     },
+
 
     createStock: async (req, res) => {
         try {
@@ -82,6 +141,7 @@ const inventoryController = {
                 stock_quantity,
                 created_at: new Date(),
             });
+
 
             res.status(200).json(stock);
         } catch (error) {
